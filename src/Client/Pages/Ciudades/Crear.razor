@@ -1,0 +1,33 @@
+﻿@page "/ciudades/crear"
+@using Models
+@using Siberian.Demo.Shared
+@inject HttpClient http
+@inject NavigationManager NavigationManager
+
+<h3>Crear</h3>
+
+<EditForm Model="@ciudad" OnValidSubmit="HandleValidSubmit">
+	<DataAnnotationsValidator />
+	<ValidationSummary />
+
+	<InputText id="name" @bind-Value="ciudad.NombreCiudad" />
+
+	<InputDate id="date" @bind-Value="ciudad.FechaCreacion" />
+
+	<button type="submit">Crear</button>
+</EditForm>
+
+@code {
+	private CiudadDto ciudad = new();
+
+	private async Task HandleValidSubmit()
+	{
+		await http.PostAsJsonAsync("api/ciudades", new Ciudad
+		{
+			FechaCreacion = ciudad.FechaCreacion,
+			NombreCiudad = ciudad.NombreCiudad
+		});
+
+		NavigationManager.NavigateTo("/ciudades");
+	}
+}

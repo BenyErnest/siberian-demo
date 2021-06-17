@@ -1,0 +1,58 @@
+﻿@page "/ciudades"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using Siberian.Demo.Shared
+@attribute [Authorize]
+@inject HttpClient Http
+
+<h1>Ciudades</h1>
+
+@if (ciudades == null)
+{
+	<p><em>Loading...</em></p>
+}
+else
+{
+	<div class="row">
+	 <NavLink class="nav-link" href="ciudades/crear" Match="NavLinkMatch.Prefix">
+	  <span class="oi oi-plus" aria-hidden="true"></span> Crear
+	 </NavLink>
+	</div>
+	<table class="table">
+	 <thead>
+	  <tr>
+	   <th>Fecha</th>
+	   <th>Nombre Ciudad</th>
+	  </tr>
+	 </thead>
+	 <tbody>
+			@foreach (var ciudad in ciudades)
+			{
+		  <tr>
+		   <td>@ciudad.FechaCreacion.ToShortDateString()</td>
+		   <td>@ciudad.NombreCiudad</td>
+		  </tr>
+			}
+	 </tbody>
+	</table>
+}
+
+@code {
+	private Ciudad[] ciudades;
+
+	protected override async Task OnInitializedAsync()
+	{
+#if DEBUG
+	await Task.Delay(10000);
+#endif
+		try
+		{
+			ciudades = await Http.GetFromJsonAsync<Ciudad[]>("api/Ciudades");
+		}
+		catch (AccessTokenNotAvailableException exception)
+		{
+			exception.Redirect();
+		}
+	}
+
+}
