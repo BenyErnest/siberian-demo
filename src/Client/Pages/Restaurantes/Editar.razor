@@ -1,4 +1,4 @@
-﻿@page "/restaurantes/crear"
+﻿@page "/restaurantes/editar/{id:int}"
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using Models
@@ -7,7 +7,7 @@
 @inject HttpClient http
 @inject NavigationManager NavigationManager
 
-<h3>Crear</h3>
+<h3>Editar</h3>
 
 @if (_ciudades == null)
 {
@@ -51,19 +51,38 @@ else
   </label>
  </p>
 
- <button type="submit">Crear</button>
+ <button type="submit">Editar</button>
 </EditForm>
 }
 
 @code {
-	private CrearRestaurantDto _restaurant = new();
+	[Parameter]
+	public int Id { get; set; }
+
+	private EditarRestaurantDto _restaurant = new();
 	private Ciudad[] _ciudades;
 
 	protected override async Task OnInitializedAsync()
 	{
 		try
 		{
-			_ciudades = await http.GetFromJsonAsync<Ciudad[]>("api/Ciudades");
+			var restaurantTask = http.GetFromJsonAsync<Restaurante>($"api/Restaurantes/{Id}");
+			var ciudadesTask = http.GetFromJsonAsync<Ciudad[]>("api/Ciudades");
+
+			await Task.WhenAll(
+				restaurantTask,
+				ciudadesTask
+			);
+
+			_ciudades = ciudadesTask.GetAwaiter().GetResult();
+
+			var restaurante = restaurantTask.GetAwaiter().GetResult();
+
+			_restaurant.IdCiudad = restaurante.IdCiudad;
+			_restaurant.IdRestaurante = restaurante.IdRestaurante;
+			_restaurant.NombreRestaurante = restaurante.NombreRestaurante;
+			_restaurant.NumeroAforo = restaurante.NumeroAforo;
+			_restaurant.Telefono = restaurante.Telefono;
 		}
 		catch (AccessTokenNotAvailableException exception)
 		{
@@ -73,9 +92,8 @@ else
 
 	private async Task HandleValidSubmit()
 	{
-		await http.PostAsJsonAsync("api/restaurantes", new Restaurante
+		await http.PutAsJsonAsync($"api/restaurantes/{Id}", new Restaurante
 		{
-			FechaCreacion = DateTime.Now,
 			NombreRestaurante = _restaurant.NombreRestaurante,
 			IdCiudad = _restaurant.IdCiudad,
 			NumeroAforo = _restaurant.NumeroAforo,

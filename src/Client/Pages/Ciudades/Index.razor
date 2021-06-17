@@ -4,6 +4,7 @@
 @using Siberian.Demo.Shared
 @attribute [Authorize]
 @inject HttpClient Http
+@inject NavigationManager NavigationManager
 
 <h1>Ciudades</h1>
 
@@ -31,6 +32,10 @@ else
 		  <tr>
 		   <td>@ciudad.FechaCreacion.ToShortDateString()</td>
 		   <td>@ciudad.NombreCiudad</td>
+		   <td>
+			<button @onclick="() => Edit(ciudad.IdCiudad)" class="btn btn-dark">Editar</button>
+			<button @onclick="async () => await Delete(ciudad.IdCiudad)" class="btn btn-dark">Eliminar</button>
+		   </td>
 		  </tr>
 			}
 	 </tbody>
@@ -42,9 +47,6 @@ else
 
 	protected override async Task OnInitializedAsync()
 	{
-#if DEBUG
-	await Task.Delay(10000);
-#endif
 		try
 		{
 			ciudades = await Http.GetFromJsonAsync<Ciudad[]>("api/Ciudades");
@@ -55,4 +57,22 @@ else
 		}
 	}
 
+	private void Edit(int id)
+	{
+		NavigationManager.NavigateTo($"/ciudades/editar/{id}");
+	}
+
+	private async Task Delete(int id)
+	{
+		try
+		{
+			await Http.DeleteAsync($"api/Ciudades/{id}");
+
+			await OnInitializedAsync();
+		}
+		catch (AccessTokenNotAvailableException exception)
+		{
+			exception.Redirect();
+		}
+	}
 }

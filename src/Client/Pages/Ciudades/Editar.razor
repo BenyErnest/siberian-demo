@@ -1,5 +1,56 @@
-﻿<h3>Editar</h3>
+﻿@page "/ciudades/editar/{Id:int}"
+@using Siberian.Demo.Client.Models
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using Siberian.Demo.Shared
+@attribute [Authorize]
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+
+<h3>Editar</h3>
+
+<EditForm Model="@_ciudad" OnValidSubmit="HandleValidSubmit">
+	<DataAnnotationsValidator />
+	<ValidationSummary />
+
+	<InputText id="name" @bind-Value="_ciudad.NombreCiudad" />
+
+	<button type="submit">Editar</button>
+</EditForm>
 
 @code {
+	[Parameter]
+	public int Id { get; set; }
 
+	private EditCityDto _ciudad = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			var ciudad = await Http.GetFromJsonAsync<Ciudad>($"api/Ciudades/{Id}");
+
+			_ciudad.IdCiudad = ciudad.IdCiudad;
+			_ciudad.NombreCiudad = ciudad.NombreCiudad;
+		}
+		catch (AccessTokenNotAvailableException exception)
+		{
+			exception.Redirect();
+		}
+	}
+
+	private async Task HandleValidSubmit()
+	{
+		try
+		{
+			await Http.PutAsJsonAsync($"/api/ciudades/{Id}", _ciudad);
+
+			NavigationManager.NavigateTo("/ciudades");
+		}
+		catch(Exception ex)
+		{
+			
+		}
+	}
 }

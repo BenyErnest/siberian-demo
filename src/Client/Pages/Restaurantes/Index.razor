@@ -1,5 +1,82 @@
-﻿<h3>Index</h3>
+﻿@page "/restaurantes"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using Siberian.Demo.Shared
+@attribute [Authorize]
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<h1>Restaurantes</h1>
+
+@if (_restaurantes == null)
+{
+	<p><em>Loading...</em></p>
+}
+else
+{
+	<div class="row">
+	 <NavLink class="nav-link" href="restaurantes/crear" Match="NavLinkMatch.Prefix">
+	  <span class="oi oi-plus" aria-hidden="true"></span> Crear
+	 </NavLink>
+	</div>
+	<table class="table">
+	 <thead>
+	  <tr>
+	   <th>Fecha</th>
+	   <th>Nombre Restaurante</th>
+	   <th>Numero Aforo</th>
+	   <th>Telefono</th>
+	  </tr>
+	 </thead>
+	 <tbody>
+			@foreach (var restaurant in _restaurantes)
+			{
+		  <tr>
+		   <td>@restaurant.FechaCreacion.ToShortDateString()</td>
+		   <td>@restaurant.NombreRestaurante</td>
+		   <td>@restaurant.NumeroAforo</td>
+		   <td>@restaurant.Telefono</td>
+		   <td>
+			<button @onclick="() => Edit(restaurant.IdRestaurante)" class="btn btn-dark">Editar</button>
+			<button @onclick="async () => await Delete(restaurant.IdRestaurante)" class="btn btn-dark">Eliminar</button>
+		   </td>
+		  </tr>
+			}
+	 </tbody>
+	</table>
+}
 
 @code {
+	private Restaurante[] _restaurantes;
 
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			_restaurantes = await Http.GetFromJsonAsync<Restaurante[]>("api/Restaurantes");
+		}
+		catch (AccessTokenNotAvailableException exception)
+		{
+			exception.Redirect();
+		}
+	}
+
+	private void Edit(int id)
+	{
+		NavigationManager.NavigateTo($"/restaurantes/editar/{id}");
+	}
+
+	private async Task Delete(int id)
+	{
+		try
+		{
+			await Http.DeleteAsync($"api/Restaurantes/{id}");
+
+			await OnInitializedAsync();
+		}
+		catch (AccessTokenNotAvailableException exception)
+		{
+			exception.Redirect();
+		}
+	}
 }

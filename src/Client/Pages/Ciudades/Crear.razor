@@ -1,6 +1,9 @@
 ﻿@page "/ciudades/crear"
 @using Models
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using Siberian.Demo.Shared
+@attribute [Authorize]
 @inject HttpClient http
 @inject NavigationManager NavigationManager
 
@@ -12,19 +15,17 @@
 
 	<InputText id="name" @bind-Value="ciudad.NombreCiudad" />
 
-	<InputDate id="date" @bind-Value="ciudad.FechaCreacion" />
-
 	<button type="submit">Crear</button>
 </EditForm>
 
 @code {
-	private CiudadDto ciudad = new();
+	private CityDto ciudad = new();
 
 	private async Task HandleValidSubmit()
 	{
 		await http.PostAsJsonAsync("api/ciudades", new Ciudad
 		{
-			FechaCreacion = ciudad.FechaCreacion,
+			FechaCreacion = DateTime.Now,
 			NombreCiudad = ciudad.NombreCiudad
 		});
 

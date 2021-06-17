@@ -1,7 +1,32 @@
 ﻿@page "/"
+@inject IJSRuntime JS
 
 <h1>Hello, world!</h1>
 
 Welcome to your new app.
 
+<p>
+	<input type="text" @bind-value="_text" />
+	<button @onclick="ConvertString">Convert Array</button>
+</p>
+
+<p>
+	@foreach (var c in _result)
+	{
+		<ul>
+	  <li>@c</li>
+  </ul>
+	}
+</p>
+
 <SurveyPrompt Title="How is Blazor working for you?" />
+
+@code{
+	private string _text;
+	private char[] _result = Array.Empty<char>();
+
+	private async Task ConvertString()
+	{
+		_result = await JS.InvokeAsync<char[]>("convertStringToCharArr", _text);
+	}
+}
